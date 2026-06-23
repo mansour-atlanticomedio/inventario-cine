@@ -1,0 +1,70 @@
+services:
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: postgres-db
+    env_file:
+      - .env
+    volumes:
+      - inventario_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - inventario_net
+
+  inventario-back:
+    container_name: inventario-back
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.local
+    volumes:
+      - ./backend:/var/www/html
+    healthcheck:
+      test: ["CMD", "php", "-r", "echo 'ok';"] 
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - inventario_net
+    
+
+  inventario-front:
+    container_name: inventario-front
+    env_file:
+      - .env
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.local
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - inventario-back
+    ports:
+      - 5173:5173
+    networks:
+      - inventario_net
+
+volumes:
+  inventario_front_v:
+  inventario_pgdata:
+
+networks:
+  inventario_net:
