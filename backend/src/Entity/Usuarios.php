@@ -20,7 +20,11 @@ class Usuarios
     private ?string $email = null;
 
     #[ORM\Column]
-    private ?int $log_id = null;
+    private ?int $rol_id = null;
+
+    #[ORM\OneToMany(targetEntity:Usuarios::class, mappedBy:'categorias' )]
+    #[ORM\JoinColumn(name: 'categoria_id', referencedColumnName: 'id', nullable: true)]
+    private ?string $categoria = null;
 
     public function getId(): ?int
     {
@@ -51,14 +55,26 @@ class Usuarios
         return $this;
     }
 
-    public function getLogId(): ?int
+    public function getRolId(): ?int
     {
-        return $this->log_id;
+        return $this->rol_id;
     }
 
-    public function setLogId(int $log_id): static
+    public function setLogId(int $rol_id): static
     {
-        $this->log_id = $log_id;
+        $this->rol_id = $rol_id;
+
+        return $this;
+    }
+
+    public function getCategoria(): ?string
+    {
+        return $this->categoria;
+    }
+
+    public function setCategoria(string $categoria): static
+    {
+        $this->categoria = $categoria;
 
         return $this;
     }
